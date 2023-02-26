@@ -1,0 +1,17 @@
+{
+  "name": "hi3-fps-unlocker",
+  "version": "1.0.0",
+  "description": "Allows for easy modification of Hi3 FPS values in and out of combat.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "dromzeh",
+  "license": "MIT",
+  "dependencies": {
+    "buffer": "^6.0.3",
+    "chalk": "^5.2.0",
+    "winreg": "^1.2.4"
+  }
+}
