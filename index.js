@@ -1,4 +1,4 @@
-// (c) 2023 - drozmeh (Marcel).<marcel@dromzeh.dev>
+// (c) 2023 - dromzeh (Marcel) <marcel@dromzeh.dev>
 // Licensed under the MIT license - https://mit.dromzeh.dev/
 
 // importing the required modules

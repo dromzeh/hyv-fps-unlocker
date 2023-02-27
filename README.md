@@ -1,10 +1,3 @@
-# hi3-fps-unlock
-
-Program that allows you to modify the fps of Hi3 in and outside of combat to any value of your choice.
-- This is done by registry editing using the `winreg` library.
-
-*Disclaimer: I am not responsible for any damage caused by this program. Use at your own risk.*
-
 <p align = "center">
     <a href="https://buymeacoffee.com/marcelmd" alt="buymeacoffee">
         <img src="https://img.shields.io/badge/Buy_Me_A_Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black"/></a>
@@ -16,11 +9,17 @@ Program that allows you to modify the fps of Hi3 in and outside of combat to any
         <img src = "https://img.shields.io/badge/JavaScript-323330?style=for-the-badge&logo=javascript&logoColor=white"></a>
 </p>
 
+# hi3-fps-unlock
+
+Program that allows you to modify the fps of Hi3 in and outside of combat to any value of your choice.
+Read the blog post about this project [here](https://dromzeh.dev/posts/hi3-fps-unlock/).
+
+> **Warning**:
+> I am not responsible for any consequences that may occur from using this program. Use at your own risk.
 
 ## Installation
 
-- Git Clone or Download this repository.
-
+- `git clone` or Download this repository.
 - Install pnpm & node.js:
 
 ```bash
@@ -30,12 +29,11 @@ npm i -g pnpm # if installing pnpm using npm
 ## Usage
 
 - Open a terminal in the `hi3-fps-unlock` directory.
-
 - If you are using the program for the first time, run `pnpm i`. This will install the required dependencies.
-
 - Run `pnpm start` to run the program, follow the instructions in the CLI.
 
-**Note: You do NOT have to run this as administrator.**
+> **Note**:
+> You do **NOT** have to run this as administrator.
 
 ## Contributing
 
