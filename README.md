@@ -9,10 +9,12 @@
         <img src = "https://img.shields.io/badge/JavaScript-323330?style=for-the-badge&logo=javascript&logoColor=white"></a>
 </p>
 
-# hi3-fps-unlock
+# hi3-fps-unlocker
 
 Program that allows you to modify the fps of Hi3 in and outside of combat to any value of your choice.
 Read the blog post about this project [here](https://dromzeh.dev/posts/hi3-fps-unlock/).
+
+If you're looking for a Honkai: Star Rail unlocker, check out [hsr-fps-unlocker](https://github.com/dromzeh/hsr-fps-unlocker)
 
 > **Warning**:
 > I am not responsible for any consequences that may occur from using this program. Use at your own risk.
