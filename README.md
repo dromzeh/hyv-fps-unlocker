@@ -11,8 +11,11 @@
 
 # hi3-fps-unlocker
 
-Program that allows you to modify the fps of Hi3 in and outside of combat to any value of your choice.
+Program that allows you to modify the fps of Hi3 in and outside of levels to any value of your choice.
 Read the blog post about this project [here](https://dromzeh.dev/posts/hi3-fps-unlock/).
+
+> **Note**:
+> Because you're modifying the registry, changing your options in-game will reset the fps to the value you set in-game. To change the fps again, you will have to use this program again.
 
 If you're looking for a Honkai: Star Rail unlocker, check out [hsr-fps-unlocker](https://github.com/dromzeh/hsr-fps-unlocker)
 
