@@ -2,9 +2,10 @@
 // Licensed under the MIT license - https://mit.dromzeh.dev/
 
 // importing the required modules
-const Registry = require('winreg');
-const readline = require('readline');
-const { Buffer } = require('buffer');
+import Registry from 'winreg';
+import readline from 'readline';
+import { Buffer } from 'buffer';
+import chalk from 'chalk';
 
 const regKey = new Registry({
   hive: Registry.HKCU,
@@ -18,11 +19,11 @@ regKey.keyExists((err, exists) => {
   }
 
   if (!exists) {
-    console.log('Hi3 regkey does not exist!');
+    console.log(`${chalk.gray(`[${chalk.red('-')}]`)} Could not find Hi3 regkey!`);
     return;
   }
 
-  console.log('Found Hi3 regkey, checking for PersonalGraphicsSetting subkey...');
+  console.log(`${chalk.gray(`[${chalk.green('+')}]`)} Found Hi3 regkey, checking for PersonalGraphicsSetting subkey..`);
 
   regKey.values((err, items) => {
     if (err) {
@@ -34,13 +35,13 @@ regKey.keyExists((err, exists) => {
     const value = items.find(item => item.type === 'REG_BINARY' && item.name.includes('GENERAL_DATA_V2_PersonalGraphicsSettingV2'));
 
     if (!value) {
-      console.log('Did not find value');
+      console.log(`${chalk.gray(`[${chalk.red('-')}]`)} Could not find Graphics Settings Binary value!`);
       return;
     }
 
-    console.log(`Found Graphics Settings Binary value with name '${value.name}'`);
+    console.log(`${chalk.gray(`[${chalk.green('+')}]`)} Found Graphics Settings Binary value ${chalk.cyan(value.name)}!\n`);
 
-    //  data parsing & conversion logic
+    //  data parsing & conversion logics
     const hexData = value.value.toString('hex');
     const buffer = Buffer.from(hexData, 'hex');
     const dataString = buffer.toString();
@@ -49,8 +50,16 @@ regKey.keyExists((err, exists) => {
     const cleanDataString = dataString.match(printableAscii).join('');
     const graphicsSettings = JSON.parse(cleanDataString);
 
-    console.log(`Current FPS out of level: ${graphicsSettings.TargetFrameRateForOthers}`);
-    console.log(`Current FPS in level: ${graphicsSettings.TargetFrameRateForInLevel}`);
+
+    // print current FPS values
+    console.log(`${chalk.gray(`[${chalk.green('+')}]`)} Current FPS in level: ${chalk.cyan(graphicsSettings.TargetFrameRateForInLevel)}`);
+    console.log(`${chalk.gray(`[${chalk.green('+')}]`)} Current FPS out of level: ${chalk.cyan(graphicsSettings.TargetFrameRateForOthers)} \n`);
+
+    // save old FPS values
+    const oldFpsValues = {
+      inLevel: graphicsSettings.TargetFrameRateForInLevel,
+      outOfLevel: graphicsSettings.TargetFrameRateForOthers
+    }
 
     const rl = readline.createInterface({
       input: process.stdin,
@@ -58,12 +67,10 @@ regKey.keyExists((err, exists) => {
     });
 
     // prompt user for new FPS values
-    rl.question('Enter the desired FPS out of level: ', (combatFPS) => {
-      rl.question('Enter the desired FPS in level: ', (outOfCombatFPS) => {
+    rl.question(`${chalk.gray(`[${chalk.cyan('!')}]`)} Enter new FPS in level: `, (combatFPS) => {
+      rl.question(`${chalk.gray(`[${chalk.cyan('!')}]`)} Enter new FPS out of level: `, (outOfCombatFPS) => {
         graphicsSettings.TargetFrameRateForInLevel = parseInt(combatFPS);
         graphicsSettings.TargetFrameRateForOthers = parseInt(outOfCombatFPS);
-
-        console.log(`The modified graphics settings are: ${JSON.stringify(graphicsSettings)}`);
 
         const modifiedDataString = JSON.stringify(graphicsSettings);
         const modifiedBuffer = Buffer.from(modifiedDataString);
@@ -71,11 +78,14 @@ regKey.keyExists((err, exists) => {
 
         regKey.set(value.name, Registry.REG_BINARY, modifiedHexData, (err) => {
           if (err) {
+            console.log(`${chalk.gray(`[${chalk.red('-')}]`)} Could not update value ${value.name}!`);
             console.log(err);
             return;
           }
 
-          console.log(`Updated value ${value.name} to ${modifiedHexData}`);
+          console.log(`\n${chalk.gray(`[${chalk.green('+')}]`)} Updated FPS from ${chalk.cyan(oldFpsValues.inLevel)} to ${chalk.cyan(combatFPS)} in level and from ${chalk.cyan(oldFpsValues.outOfLevel)} to ${chalk.cyan(outOfCombatFPS)} out of level!`);
+          console.log(`\n${chalk.gray(`[${chalk.cyan('!')}]`)} New configuration: ${chalk.cyan(JSON.stringify(graphicsSettings))}`);
+
           rl.close();
         });
       });

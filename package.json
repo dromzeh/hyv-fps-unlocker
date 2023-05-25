@@ -1,7 +1,8 @@
 {
   "name": "hi3-fps-unlocker",
+  "type": "module",
   "version": "1.0.0",
-  "description": "Allows for easy modification of Hi3 FPS values in and out of combat.",
+  "description": "Allows for easy modification of Hi3 FPS values.",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
