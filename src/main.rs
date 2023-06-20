@@ -48,11 +48,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     // parse raw_value binary data into json, then print it
     let mut json_value: Value = serde_json::from_slice(&raw_value.bytes)?;
 
-    // ask user for input, to modify FPS
-
     // print json_value
     println!("");
-    println!("Current FPS settings for {}", game);
+    println!("Current Values for {}:", game);
+    println!("");
     if game == "hsr" {
         println!("FPS: {}", json_value["FPS"]);
     } else {
@@ -61,22 +60,41 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     println!("");
 
+    // ask user for new FPS settings
     if game == "hsr" {
         println!("Enter desired FPS (30/60/120): ");
         io::stdin().read_line(&mut input)?;
-        let fps: u32 = input.trim().parse()?;
+        let fps: u32 = match input.trim().parse() {
+            Ok(num) => num,
+            Err(_) => {
+                println!("No input detected, setting FPS to 120");
+                120
+            }
+        };
         input.clear();
 
         json_value["FPS"] = json!(fps);
     } else {
         println!("Enter desired FPS in level: ");
         io::stdin().read_line(&mut input)?;
-        let target_frame_rate_for_in_level: u32 = input.trim().parse()?;
+        let target_frame_rate_for_in_level: u32 = match input.trim().parse() {
+            Ok(num) => num,
+            Err(_) => {
+                println!("No input detected, setting FPS to 120");
+                120
+            }
+        };
         input.clear();
         println!("");
         println!("Enter desired FPS out of level: ");
         io::stdin().read_line(&mut input)?;
-        let target_frame_rate_for_others: u32 = input.trim().parse()?;
+        let target_frame_rate_for_others: u32 = match input.trim().parse() {
+            Ok(num) => num,
+            Err(_) => {
+                println!("No input detected, setting FPS to 120");
+                120
+            }
+        };
         input.clear();
 
         json_value["TargetFrameRateForInLevel"] = json!(target_frame_rate_for_in_level);
@@ -93,7 +111,19 @@ fn main() -> Result<(), Box<dyn Error>> {
     reg_key.set_raw_value(value_name, &new_raw_value)?;
 
     println!("");
-    println!("Updated FPS settings for {}", game);
+    if game == "hsr" {
+        println!("FPS set to {}", json_value["FPS"]);
+    } else {
+        println!(
+            "In Level FPS set to {}",
+            json_value["TargetFrameRateForInLevel"]
+        );
+        println!(
+            "Out of Level FPS set to {}",
+            json_value["TargetFrameRateForOthers"]
+        );
+    }
+    
     println!("Press any key to exit");
 
     io::stdin().read_line(&mut input)?;
