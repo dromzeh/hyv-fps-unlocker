@@ -31,7 +31,9 @@ pub fn get_raw_value(
     let value_name = values
         .iter()
         .find(|&x| x.contains(value_name_contains))
-        .unwrap();
+        .ok_or_else(|| format!("Value {} not found", value_name_contains))?;
     println!("Found {} at {:?} \n", value_name_contains, value_name);
-    Ok(reg_key.get_raw_value(value_name)?)
+    reg_key
+        .get_raw_value(value_name)
+        .map_err(|e| format!("Failed to get raw value: {}", e).into())
 }
