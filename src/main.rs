@@ -19,7 +19,11 @@ fn main() {
 
 fn run_program() -> Result<(), Box<dyn Error>> {
     println!("hyv-fps-unlocker @ git.dromzeh.dev/hyv-fps-unlocker");
-    println!("Your registry files will be modified to unlock FPS, if you are not comfortable with this, please do not continue.");
+    println!("This program is provided as-is, without any warranty. Use at your own risk.");
+    println!(
+        "Do not use this program if you are not comfortable with modifying your registry files."
+    );
+    println!("Modifying registry values while the game is running will prevent the program from working as intended.\n");
     let game = game_selection::get_game_selection()?;
     let (reg_key_path, value_name_contains) = registry_info::get_registry_info(&game)?;
     let raw_value = registry_info::get_raw_value(&reg_key_path, &value_name_contains)?;

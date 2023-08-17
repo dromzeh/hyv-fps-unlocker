@@ -10,12 +10,12 @@ Read the blog post about this project (For Hi3 unlocking) [here](https://dromzeh
 > **Warning**:
 > **I am not responsible for any consequences that may occur from using this program.** Use at your own risk.
 
-## Download and Usage
+## Download & Usage
 
 ## From the releases page
 
 - Download the latest release from [the releases page](https://github.com/dromzeh/hyv-fps-unlocker/releases)
-- Run`hyv-fps-unlocker.exe` and follow the instructions.
+- Run `hyv-fps-unlocker.exe` and follow the instructions.
 
 ## Building
 
@@ -24,12 +24,19 @@ Read the blog post about this project (For Hi3 unlocking) [here](https://dromzeh
 - Run the built executable in `./target/release/hyv-fps-unlocker.exe`.
 
 **You don't have to run the program as Administrator**, if you're having issues, you can try running it as Administrator.
-Alternatively, create an issue.
+
+## Known Issues
+
+### Registry Issues [Can't be fixed]
+
+- Modifying the registry values **will NOT work if you have the game open.**
+- The game **will overwrite the registry values if you change the FPS in-game.** 
+- **Options menus for games may not work as intended** after modifying the registry values.
 
 ## Contributing
 
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+Pull requests are welcome. For major changes, please open an issue first.
 
 ## License
 
-Licensed under [MIT](https://mit.dromzeh.dev/) - see [LICENSE](LICENSE) for more information.
+hyv-fps-unlocker is licensed under [MIT](https://mit.dromzeh.dev/) - see [LICENSE](LICENSE) for more information.
