@@ -11,3 +11,4 @@ winreg = "0.50.0"
 serde_json = "1.0"
 hex = "0.4"
 termcolor = "1.2.0"
+inquire = { version = "0.6.2" }
