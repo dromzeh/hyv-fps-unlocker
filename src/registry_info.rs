@@ -23,19 +23,16 @@ pub fn get_raw_value(
     value_name_contains: &str,
 ) -> Result<winreg::RegValue, Box<dyn Error>> {
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
-    // println!("Opening {:?} \n", reg_key_path);
     let reg_key = hkcu.open_subkey_with_flags(reg_key_path, KEY_ALL_ACCESS)?;
-    // println!("Opened {:?} \n", reg_key_path);
     let values = reg_key
         .enum_values()
         .map(|x| x.unwrap().0)
         .collect::<Vec<_>>();
-    // println!("Found values: {:?} \n", values);
     let value_name = values
         .iter()
         .find(|&x| x.contains(value_name_contains))
         .ok_or_else(|| format!("Value {} not found", value_name_contains))?;
-    // println!("Found {} at {:?} \n", value_name_contains, value_name);
+    println!("Found {} at {:?} \n", value_name_contains, value_name);
     reg_key
         .get_raw_value(value_name)
         .map_err(|e| format!("Failed to get raw value: {}", e).into())
