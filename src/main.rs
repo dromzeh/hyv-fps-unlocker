@@ -1,7 +1,7 @@
 extern crate winreg;
 use std::error::Error;
-use winreg::RegValue;
 use std::result::Result;
+use winreg::RegValue;
 mod fps_settings;
 mod game_selection;
 mod message;
@@ -31,11 +31,11 @@ fn run_program() -> Result<(), Box<dyn Error>> {
     let mut json_value = match raw_value::parse_raw_value(&raw_value) {
         Ok(value) => value,
         Err(_) => {
-            println!("Failed to parse value, attempting to clean value...");
+            println!("Failed to parse raw value, attempting to clean and parse again.");
             match raw_value::parse_raw_value(&clean_raw_value(&raw_value)) {
                 Ok(value) => value,
                 Err(_) => {
-                    return Err("Failed to parse raw value after cleaning".into());
+                    return Err("Failed to parse raw value after attempting to clean. You might want to check the registry value manually. If you are sure the value is correct, please open a GitHub issue.".into());
                 }
             }
         }
