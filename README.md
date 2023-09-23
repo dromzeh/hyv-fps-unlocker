@@ -1,9 +1,12 @@
 # hyv-fps-unlocker
 
-Manipulates registry entries for **Honkai Impact 3rd** and **Honkai: Star Rail**, unlocking the FPS cap.
+Modifies registry entries for **Honkai Impact 3rd** and **Honkai: Star Rail**, unlocking the FPS cap.
 
-> **Warning**:
-> I am not responsible for any damage caused to your system. Please use this program at your own risk.
+![Windows](https://img.shields.io/badge/os-windows-blue)
+![GitHub last commit (branch)](https://img.shields.io/github/last-commit/dromzeh/hyv-fps-unlocker/main)
+![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/dromzeh/hyv-fps-unlocker/build.yml)
+
+---
 
 ## Download & Usage
 
@@ -29,6 +32,10 @@ Manipulates registry entries for **Honkai Impact 3rd** and **Honkai: Star Rail**
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+## Note 
+
+I am not responsible for any damage caused to your system. Please use this program at your own risk.
 
 ## License
 
