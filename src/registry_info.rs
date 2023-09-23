@@ -4,6 +4,7 @@ use std::string::String;
 use winreg::enums::*;
 use winreg::RegKey;
 
+/// Retrieves the registry key path and value name for a specified game.
 pub fn get_registry_info(game: &str) -> Result<(String, String), Box<dyn Error>> {
     match game {
         "hi3" => Ok((
@@ -18,6 +19,7 @@ pub fn get_registry_info(game: &str) -> Result<(String, String), Box<dyn Error>>
     }
 }
 
+/// Retrieves the raw value for a specified registry key path and value name.
 pub fn get_raw_value(
     reg_key_path: &str,
     value_name_contains: &str,

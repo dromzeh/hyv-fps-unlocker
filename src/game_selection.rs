@@ -4,6 +4,7 @@ use std::error::Error;
 use std::result::Result;
 use std::string::String;
 
+/// Prompts the user for a game selection and returns the game abbreviation.
 pub fn get_game_selection() -> Result<String, Box<dyn Error>> {
     let games: Vec<&str> = vec!["Honkai: Star Rail", "Honkai Impact 3rd"];
     let game_selection: Result<&str, InquireError> =

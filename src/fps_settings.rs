@@ -7,6 +7,7 @@ use std::error::Error;
 use std::result::Result;
 use std::string::String;
 
+/// Prints the current FPS settings for a specified game.
 pub fn print_current_values(game: &str, json_value: &Value) {
     match game {
         "hsr" => println!("Current FPS Value: {}", json_value["FPS"]),
@@ -15,6 +16,7 @@ pub fn print_current_values(game: &str, json_value: &Value) {
     }
 }
 
+/// Prompts the user for a new FPS value and returns a new JSON value with the updated FPS value.
 pub fn get_new_fps_settings(game: &str, json_value: &mut Value) -> Result<Value, Box<dyn Error>> {
     let input: String = if game != "hsr" {
         let fps_options = Text::new("What FPS to set?").prompt();
