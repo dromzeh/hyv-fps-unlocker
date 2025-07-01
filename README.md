@@ -21,7 +21,7 @@ This unlocker modifies registry values where the games store their graphics sett
 
 - If the unlocker doesn't detect your game, launch it and change any graphics setting to create the registry entries. The easiest option is changing your resolution, applying it, then changing it back.
 
-- If your in-game graphics menu appears broken, simply change any graphics setting (e.g resolution) to restore the menu to normal.
+- The unlocker can make your graphics settings in-game buggy. You can change any setting (like resolution) in-game to fix it, but your FPS will no longer be unlocked.
 
 - When you modify graphics settings in-game, the game will replace your FPS values, requiring you to rerun the unlocker after each change.
 
@@ -43,7 +43,7 @@ Pull requests welcome. For major changes, please open an issue first.
 
 ## Disclaimer
 
-Use at your own risk. This tool modifies system registry values.
+Use the unlocker at your own risk, I'm not responsible for any damage that happens due to you using this unlocker.
 
 ## License
 
