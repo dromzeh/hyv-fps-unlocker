@@ -43,7 +43,7 @@ fn is_game_installed(game_config: &GameConfig) -> bool {
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
 
     for registry_path in &game_config.registry_paths {
-        if let Ok(_) = try_registry_path(&hkcu, registry_path) {
+        if try_registry_path(&hkcu, registry_path).is_ok() {
             return true;
         }
     }
@@ -127,13 +127,10 @@ fn matches_pattern(value: &str, pattern: &str) -> bool {
         return true;
     }
 
-    if pattern.ends_with("_h") {
-        let base_pattern = &pattern[..pattern.len() - 2];
-
+    if let Some(base_pattern) = pattern.strip_suffix("_h") {
         if let Some(pattern_index) = value.find(base_pattern) {
             let after_pattern = &value[pattern_index + base_pattern.len()..];
-            if after_pattern.starts_with("_h") {
-                let after_h = &after_pattern[2..];
+            if let Some(after_h) = after_pattern.strip_prefix("_h") {
                 if after_h.chars().all(|c| c.is_ascii_digit()) {
                     return true;
                 }
@@ -141,10 +138,8 @@ fn matches_pattern(value: &str, pattern: &str) -> bool {
         }
     }
 
-    if value.contains(pattern) {
-        if pattern.len() > 5 {
-            return true;
-        }
+    if value.contains(pattern) && pattern.len() > 5 {
+        return true;
     }
 
     false
@@ -154,11 +149,11 @@ pub fn get_raw_value(registry_info: &FoundRegistry) -> Result<RegValue> {
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
     let reg_key = hkcu
         .open_subkey_with_flags(&registry_info.path, KEY_READ)
-        .map_err(|e| FpsUnlockerError::WinregError(e))?;
+        .map_err(FpsUnlockerError::WinregError)?;
 
     reg_key
         .get_raw_value(&registry_info.value_name)
-        .map_err(|e| FpsUnlockerError::WinregError(e))
+        .map_err(FpsUnlockerError::WinregError)
 }
 
 pub fn write_raw_value(registry_info: &FoundRegistry, new_raw_value: &RegValue) -> Result<()> {
@@ -174,5 +169,5 @@ pub fn write_raw_value(registry_info: &FoundRegistry, new_raw_value: &RegValue) 
 
     reg_key
         .set_raw_value(&registry_info.value_name, new_raw_value)
-        .map_err(|e| FpsUnlockerError::WinregError(e))
+        .map_err(FpsUnlockerError::WinregError)
 }

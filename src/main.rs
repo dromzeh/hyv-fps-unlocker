@@ -22,7 +22,7 @@ fn main() {
     if let Err(err) = run_program() {
         eprintln!("\n❌ Error: {}", err);
         eprintln!("\nIf this error persists, please:");
-        eprintln!("1. Make sure the game is installed and has been launched at least once");
+        eprintln!("1. Make sure the game is installed and has been launched & settings have been changed at least once");
         eprintln!("2. Try running this program as administrator");
         eprintln!("3. Check if the game is running (close it if it is)");
         eprintln!("4. Open a GitHub issue if the problem continues");
@@ -31,28 +31,21 @@ fn main() {
 }
 
 fn run_program() -> Result<()> {
-    // Auto-detect installed games and get selection
     let game_config = game_selection::get_game_selection()?;
 
-    // Find registry information
     let registry_info = registry_info::find_registry_info(&game_config)?;
 
-    // Read and parse current settings
     let raw_value = registry_info::get_raw_value(&registry_info)?;
     let mut json_value = raw_value::parse_raw_value(&raw_value)?;
 
-    // Show current FPS and get new settings
     fps_settings::print_current_values(&game_config, &json_value);
     let new_json_value = fps_settings::get_new_fps_settings(&game_config, &mut json_value)?;
 
-    // Save new settings
     let new_raw_value = raw_value::create_raw_value_from_json(&new_json_value, &raw_value)?;
     registry_info::write_raw_value(&registry_info, &new_raw_value)?;
 
-    // Confirm success
     message::print_success_message(&game_config, &new_json_value);
 
-    // Important notes
     println!("\n📝 Important notes:");
     println!("- Changes will take effect the next time you start the game");
     println!("- If you change graphics settings in-game, you'll need to rerun this program");
