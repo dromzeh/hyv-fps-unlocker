@@ -3,7 +3,7 @@ use serde_json::Value;
 use std::io;
 use std::string::String;
 
-/// Prints the success message after FPS has been set
+
 pub fn print_success_message(game_config: &GameConfig, json_value: &Value) {
     if let Some(fps) = game_config.get_current_fps(json_value) {
         println!(
@@ -11,7 +11,7 @@ pub fn print_success_message(game_config: &GameConfig, json_value: &Value) {
             fps, game_config.name
         );
 
-        // Show additional fields that were updated
+        
         if !game_config.additional_fps_fields.is_empty() {
             println!("  Additional fields updated:");
             for field in &game_config.additional_fps_fields {
@@ -25,7 +25,7 @@ pub fn print_success_message(game_config: &GameConfig, json_value: &Value) {
     }
 }
 
-/// Waits for user input before exiting the program
+
 pub fn wait_for_user_input() {
     let mut input = String::new();
     println!("\nPress Enter to exit...");
