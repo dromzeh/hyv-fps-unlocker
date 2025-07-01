@@ -12,12 +12,12 @@ This unlocker modifies registry values where the games store their graphics sett
 
 ## Usage
 
-1. **Close the game completely** before running the tool
+1. Close the game completely
 2. Download and run `hyv-fps-unlocker.exe` from [releases](https://github.com/dromzeh/hyv-fps-unlocker/releases)
 3. Select the game and desired FPS value
 4. Launch the game
 
-## Known Issues
+## Fixes For Known Issues
 
 - If the unlocker doesn't detect your game, launch it and change any graphics setting to create the registry entries. The easiest option is changing your resolution, applying it, then changing it back.
 
