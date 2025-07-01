@@ -1,41 +1,178 @@
-use std::error::Error;
-use std::result::Result;
-use std::string::String;
+use crate::errors::{FpsUnlockerError, Result};
+use crate::game_config::{GameConfig, RegistryPath};
 use winreg::enums::*;
-use winreg::RegKey;
+use winreg::{RegKey, RegValue};
 
-/// Retrieves the registry key path and value name for a specified game.
-pub fn get_registry_info(game: &str) -> Result<(String, String), Box<dyn Error>> {
-    match game {
-        "hi3" => Ok((
-            "Software\\miHoYo\\Honkai Impact 3rd".to_string(),
-            "PersonalGraphicsSettingV2".to_string(),
-        )),
-        "hsr" => Ok((
-            "Software\\Cognosphere\\Star Rail".to_string(),
-            "GraphicsSettings_Model".to_string(),
-        )),
-        _ => Err("Invalid game selection".into()),
-    }
+pub struct FoundRegistry {
+    pub path: String,
+    pub value_name: String,
 }
 
-/// Retrieves the raw value for a specified registry key path and value name.
-pub fn get_raw_value(
-    reg_key_path: &str,
-    value_name_contains: &str,
-) -> Result<winreg::RegValue, Box<dyn Error>> {
+pub fn detect_installed_games() -> Vec<GameConfig> {
+    let all_games = GameConfig::get_games();
+    let mut installed_games = Vec::new();
+    let mut not_detected_games = Vec::new();
+
+    println!("🔍 Detecting installed games...");
+
+    for game in all_games {
+        if is_game_installed(&game) {
+            println!("  ✓ {} found", game.name);
+            installed_games.push(game);
+        } else {
+            println!("  ✗ {} not detected", game.name);
+            not_detected_games.push(game.name);
+        }
+    }
+
+    if installed_games.is_empty() {
+        println!("  ✗ No supported games found");
+    } else if !not_detected_games.is_empty() {
+        println!(
+            "\n💡 Note: If you have {} installed but it's not detected,",
+            not_detected_games.join(" or ")
+        );
+        println!("   try opening the game's graphics settings first, change a value, then save, to generate registry values.");
+    }
+
+    println!();
+    installed_games
+}
+
+fn is_game_installed(game_config: &GameConfig) -> bool {
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
-    let reg_key = hkcu.open_subkey_with_flags(reg_key_path, KEY_ALL_ACCESS)?;
-    let values = reg_key
-        .enum_values()
-        .map(|x| x.unwrap().0)
-        .collect::<Vec<_>>();
-    let value_name = values
+
+    for registry_path in &game_config.registry_paths {
+        if let Ok(_) = try_registry_path(&hkcu, registry_path) {
+            return true;
+        }
+    }
+    false
+}
+
+pub fn find_registry_info(game_config: &GameConfig) -> Result<FoundRegistry> {
+    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+
+    for registry_path in &game_config.registry_paths {
+        if let Ok(found) = try_registry_path(&hkcu, registry_path) {
+            return Ok(FoundRegistry {
+                path: registry_path.path.to_string(),
+                value_name: found,
+            });
+        }
+    }
+
+    let attempted_paths: Vec<String> = game_config
+        .registry_paths
         .iter()
-        .find(|&x| x.contains(value_name_contains))
-        .ok_or_else(|| format!("Value {} not found", value_name_contains))?;
-    println!("Found {} at {:?} \n", value_name_contains, value_name);
+        .map(|p| format!("  - {}", p.path))
+        .collect();
+
+    Err(FpsUnlockerError::RegistryKeyNotFound(format!(
+        "Could not find registry information for {}.\n\nAttempted paths:\n{}",
+        game_config.name,
+        attempted_paths.join("\n")
+    )))
+}
+
+fn try_registry_path(hkcu: &RegKey, registry_path: &RegistryPath) -> Result<String> {
+    let reg_key = hkcu
+        .open_subkey_with_flags(registry_path.path, KEY_READ)
+        .map_err(|e| match e.kind() {
+            std::io::ErrorKind::NotFound => FpsUnlockerError::RegistryKeyNotFound(format!(
+                "Registry path '{}' not found",
+                registry_path.path
+            )),
+            std::io::ErrorKind::PermissionDenied => FpsUnlockerError::RegistryAccessDenied(
+                format!("Access denied to registry path '{}'", registry_path.path),
+            ),
+            _ => FpsUnlockerError::WinregError(e),
+        })?;
+
+    let available_values: Vec<String> = reg_key
+        .enum_values()
+        .filter_map(|result| result.ok().map(|(name, _)| name))
+        .collect();
+
+    for pattern in &registry_path.value_patterns {
+        if let Some(found_value) = find_matching_value(&available_values, pattern) {
+            return Ok(found_value);
+        }
+    }
+
+    Err(FpsUnlockerError::RegistryValueNotFound(format!(
+        "None of the expected patterns {:?} found in {}. Available values: {:?}",
+        registry_path.value_patterns, registry_path.path, available_values
+    )))
+}
+
+fn find_matching_value(available_values: &[String], pattern: &str) -> Option<String> {
+    for value in available_values {
+        let value_lower = value.to_lowercase();
+        let pattern_lower = pattern.to_lowercase();
+
+        if matches_pattern(&value_lower, &pattern_lower) {
+            return Some(value.clone());
+        }
+    }
+    None
+}
+
+fn matches_pattern(value: &str, pattern: &str) -> bool {
+    if value == pattern {
+        return true;
+    }
+
+    if value.starts_with(pattern) {
+        return true;
+    }
+
+    if pattern.ends_with("_h") {
+        let base_pattern = &pattern[..pattern.len() - 2];
+
+        if let Some(pattern_index) = value.find(base_pattern) {
+            let after_pattern = &value[pattern_index + base_pattern.len()..];
+            if after_pattern.starts_with("_h") {
+                let after_h = &after_pattern[2..];
+                if after_h.chars().all(|c| c.is_ascii_digit()) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    if value.contains(pattern) {
+        if pattern.len() > 5 {
+            return true;
+        }
+    }
+
+    false
+}
+
+pub fn get_raw_value(registry_info: &FoundRegistry) -> Result<RegValue> {
+    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+    let reg_key = hkcu
+        .open_subkey_with_flags(&registry_info.path, KEY_READ)
+        .map_err(|e| FpsUnlockerError::WinregError(e))?;
+
     reg_key
-        .get_raw_value(value_name)
-        .map_err(|e| format!("Failed to get raw value: {}", e).into())
+        .get_raw_value(&registry_info.value_name)
+        .map_err(|e| FpsUnlockerError::WinregError(e))
+}
+
+pub fn write_raw_value(registry_info: &FoundRegistry, new_raw_value: &RegValue) -> Result<()> {
+    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+    let reg_key = hkcu
+        .open_subkey_with_flags(&registry_info.path, KEY_SET_VALUE)
+        .map_err(|e| match e.kind() {
+            std::io::ErrorKind::PermissionDenied => FpsUnlockerError::RegistryAccessDenied(
+                "Permission denied writing to registry. Try running as administrator.".to_string(),
+            ),
+            _ => FpsUnlockerError::WinregError(e),
+        })?;
+
+    reg_key
+        .set_raw_value(&registry_info.value_name, new_raw_value)
+        .map_err(|e| FpsUnlockerError::WinregError(e))
 }

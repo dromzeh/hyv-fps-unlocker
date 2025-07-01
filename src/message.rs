@@ -1,19 +1,33 @@
+use crate::game_config::GameConfig;
 use serde_json::Value;
 use std::io;
 use std::string::String;
 
-/// Prints the current FPS settings for a specified game.
-pub fn print_success_message(game: &str, json_value: &Value) {
-    match game {
-        "hsr" => println!("FPS set to {}", json_value["FPS"]),
-        "hi3" => println!("FPS set to {}", json_value["TargetFrameRateForInLevel"]),
-        _ => panic!("Invalid game selection"),
+/// Prints the success message after FPS has been set
+pub fn print_success_message(game_config: &GameConfig, json_value: &Value) {
+    if let Some(fps) = game_config.get_current_fps(json_value) {
+        println!(
+            "\n✓ Successfully set FPS to {} for {}",
+            fps, game_config.name
+        );
+
+        // Show additional fields that were updated
+        if !game_config.additional_fps_fields.is_empty() {
+            println!("  Additional fields updated:");
+            for field in &game_config.additional_fps_fields {
+                if let Some(value) = json_value.get(field) {
+                    println!("  - {}: {}", field, value);
+                }
+            }
+        }
+    } else {
+        println!("✓ FPS settings have been updated for {}", game_config.name);
     }
 }
 
-/// Waits for user input before exiting the program.
+/// Waits for user input before exiting the program
 pub fn wait_for_user_input() {
     let mut input = String::new();
-    println!("Press any key to exit");
-    io::stdin().read_line(&mut input).unwrap();
+    println!("\nPress Enter to exit...");
+    let _ = io::stdin().read_line(&mut input);
 }
