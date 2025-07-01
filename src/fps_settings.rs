@@ -1,58 +1,55 @@
-use inquire::InquireError;
-use inquire::Select;
-use inquire::Text;
-use serde_json::json;
+use crate::errors::{FpsUnlockerError, Result};
+use crate::game_config::GameConfig;
+use inquire::{Select, Text};
 use serde_json::Value;
-use std::error::Error;
-use std::result::Result;
-use std::string::String;
 
-/// Prints the current FPS settings for a specified game.
-pub fn print_current_values(game: &str, json_value: &Value) {
-    match game {
-        "hsr" => println!("Current FPS Value: {}", json_value["FPS"]),
-        "hi3" => println!("Current FPS: {}", json_value["TargetFrameRateForInLevel"]),
-        _ => panic!("Invalid game selection"),
+pub fn print_current_values(game_config: &GameConfig, json_value: &Value) {
+    if let Some(fps) = game_config.get_current_fps(json_value) {
+        println!("Current FPS for {}: {}\n", game_config.name, fps);
+    } else {
+        println!("Current FPS for {}: Unable to read\n", game_config.name);
     }
 }
 
-/// Prompts the user for a new FPS value and returns a new JSON value with the updated FPS value.
-pub fn get_new_fps_settings(game: &str, json_value: &mut Value) -> Result<Value, Box<dyn Error>> {
-    let input: String = if game != "hsr" {
-        let fps_options = Text::new("What FPS to set?").prompt();
-        match fps_options {
-            Ok(g) => g,
-            Err(e) => panic!("Error: {}", e),
-        }
+pub fn get_new_fps_settings(game_config: &GameConfig, json_value: &mut Value) -> Result<Value> {
+    let fps = if let Some(supported_fps) = &game_config.supported_fps_values {
+        let fps_options: Vec<String> = supported_fps.iter().map(|f| f.to_string()).collect();
+        let fps_selection = Select::new(
+            &format!("What FPS to set for {}?", game_config.name),
+            fps_options,
+        )
+        .prompt()
+        .map_err(|e| FpsUnlockerError::UserInputError(format!("FPS selection failed: {}", e)))?;
+
+        fps_selection
+            .parse::<u32>()
+            .map_err(|e| FpsUnlockerError::InvalidFpsValue(format!("Parse error: {}", e)))?
     } else {
-        let fps_options: Vec<&str> = vec!["30", "60", "120"];
-        let fps_selection: Result<&str, InquireError> =
-            Select::new("What FPS to set?", fps_options).prompt();
+        let fps_input = Text::new(&format!("What FPS to set for {}?", game_config.name))
+            .with_help_message("Enter a number (e.g., 144 for 144 FPS)")
+            .prompt()
+            .map_err(|e| FpsUnlockerError::UserInputError(format!("FPS input failed: {}", e)))?;
 
-        match fps_selection {
-            Ok(g) => g.to_string(),
-            Err(e) => panic!("Error: {}", e),
-        }
-    };
-
-    let fps: u32 = match input.trim().parse() {
-        Ok(num) => num,
-        Err(_) => {
-            println!("No input detected, setting FPS to 120");
+        if fps_input.trim().is_empty() {
             120
+        } else {
+            fps_input.trim().parse::<u32>().map_err(|_| {
+                FpsUnlockerError::InvalidFpsValue(format!(
+                    "Invalid FPS value: '{}'. Please enter a valid number.",
+                    fps_input
+                ))
+            })?
         }
     };
 
-    match game {
-        "hsr" => {
-            json_value["FPS"] = json!(fps);
-        }
-        "hi3" => {
-            json_value["TargetFrameRateForInLevel"] = json!(fps);
-            json_value["TargetFrameRateForOthers"] = json!(fps);
-        }
-        _ => panic!("Invalid game selection"),
+    if !(60..=500).contains(&fps) {
+        return Err(FpsUnlockerError::InvalidFpsValue(format!(
+            "FPS value {} is out of reasonable range (60-500)",
+            fps
+        )));
     }
+
+    game_config.set_fps(json_value, fps)?;
 
     Ok(json_value.clone())
 }

@@ -23,19 +23,22 @@ Modifies registry entries for **Honkai Impact 3rd** and **Honkai: Star Rail**, u
 
 ## Known Issues
 
-### Registry Method Limitations
+### Can't be fixed
 
-- Altering registry values will be ineffective if the game is currently running.
-- The game will overwrite the modified registry value(s) if you update settings in-game.
+- The game will overwrite the modified FPS value(s) if you update settings in-game, requiring you to run the unlocker again.
 - Options menus in-game may not function as expected.
+
+## Broken Menu Fix
+
+If you're facing issues with the unlocker, such as broken settings menus, you can fix this by just changing any setting in-game and restarting. This WILL disable the FPS limit set by the unlocker, requiring you to run it again.
 
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
-## Note 
+## Note
 
-I am not responsible for any damage caused to your system. Please use this program at your own risk.
+I am not responsible for any damage caused to your system. Please use this program at your own risk!
 
 ## License
 

@@ -2,9 +2,9 @@ name: Build Executable
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 env:
   CARGO_TERM_COLOR: always
@@ -13,6 +13,10 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Build
-      run: cargo build --verbose --release
+      - uses: actions/checkout@v4
+      - name: Build
+        run: cargo build --verbose --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hyv-fps-unlocker-executable
+          path: target/release/hyv-fps-unlocker.exe

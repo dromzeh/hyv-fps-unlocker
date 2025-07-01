@@ -1,25 +1,38 @@
-use inquire::InquireError;
+use crate::errors::{FpsUnlockerError, Result};
+use crate::game_config::GameConfig;
+use crate::registry_info;
 use inquire::Select;
-use std::error::Error;
-use std::result::Result;
-use std::string::String;
 
-/// Prompts the user for a game selection and returns the game abbreviation.
-pub fn get_game_selection() -> Result<String, Box<dyn Error>> {
-    let games: Vec<&str> = vec!["Honkai: Star Rail", "Honkai Impact 3rd"];
-    let game_selection: Result<&str, InquireError> =
-        Select::new("What game to modify?", games).prompt();
+pub fn get_game_selection() -> Result<GameConfig> {
+    let installed_games = registry_info::detect_installed_games();
 
-    let full_game_name = match game_selection {
-        Ok(g) => g,
-        Err(e) => panic!("Error: {}", e),
-    };
+    if installed_games.is_empty() {
+        return Err(FpsUnlockerError::GameNotSupported(
+            "No supported games found on this system.\n\nSupported games:\n- Honkai: Star Rail\n- Honkai Impact 3rd\n\nThis could happen if:\n1. The games are not installed\n2. The games haven't been launched yet\n3. You haven't opened graphics settings in-game yet (required to generate registry values)\n\nSolution: Launch your game, go to Settings > Graphics, change any setting (like resolution), apply, then try this program again.".to_string()
+        ));
+    }
 
-    let game = match full_game_name {
-        "Honkai: Star Rail" => "hsr",
-        "Honkai Impact 3rd" => "hi3",
-        _ => panic!("Invalid game selection"),
-    };
+    if installed_games.len() == 1 {
+        let game = &installed_games[0];
+        println!("✓ Only one game detected: {}", game.name);
+        println!("Automatically selecting {}...\n", game.name);
+        return Ok(game.clone());
+    }
 
-    Ok(game.to_string())
+    println!("Found {} installed games:", installed_games.len());
+    for game in &installed_games {
+        println!("  • {}", game.name);
+    }
+    println!();
+
+    let game_names: Vec<&str> = installed_games.iter().map(|g| g.name).collect();
+
+    let game_selection = Select::new("Which game would you like to modify?", game_names)
+        .prompt()
+        .map_err(|e| FpsUnlockerError::UserInputError(format!("Game selection failed: {}", e)))?;
+
+    installed_games
+        .into_iter()
+        .find(|game| game.name == game_selection)
+        .ok_or_else(|| FpsUnlockerError::GameNotSupported(game_selection.to_string()))
 }

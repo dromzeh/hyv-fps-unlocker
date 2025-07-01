@@ -1,59 +1,68 @@
+use crate::errors::{FpsUnlockerError, Result};
 use serde_json::Value;
-use std::error::Error;
-use std::result::Result;
-use winreg::enums::*;
-use winreg::{RegKey, RegValue};
+use winreg::RegValue;
 
-/// Parses a raw value into a JSON value.
-pub fn parse_raw_value(raw_value: &RegValue) -> Result<Value, Box<dyn Error>> {
-    let json_value: Value = serde_json::from_slice(&raw_value.bytes)?;
-    Ok(json_value)
-}
-
-/// Writes a new raw value to the registry.
-pub fn write_new_raw_value(
-    reg_key_path: &str,
-    value_name_contains: &str,
-    new_raw_value: &RegValue,
-) -> Result<(), Box<dyn Error>> {
-    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
-    let reg_key = hkcu.open_subkey_with_flags(reg_key_path, KEY_ALL_ACCESS)?;
-    let value_name = reg_key
-        .enum_values()
-        .filter_map(|x| x.ok().map(|(name, _)| name))
-        .find(|name| name.contains(value_name_contains))
-        .ok_or_else(|| format!("Value {} not found", value_name_contains))?;
-    reg_key.set_raw_value(value_name, new_raw_value)?;
-    Ok(())
-}
-
-/// Parses a raw value into a JSON value, and attempts to clean the raw value if parsing fails.
-pub fn parse_and_clean_raw_value(raw_value: &RegValue) -> Result<Value, Box<dyn Error>> {
-    match parse_raw_value(raw_value) {
+pub fn parse_raw_value(raw_value: &RegValue) -> Result<Value> {
+    match serde_json::from_slice(&raw_value.bytes) {
         Ok(value) => Ok(value),
-        Err(_) => {
-            println!("Failed to parse raw value, attempting to clean and parse again.");
-            match parse_raw_value(&clean_raw_value(raw_value)) {
+        Err(e) => {
+            let cleaned_value = clean_raw_value(raw_value);
+            match serde_json::from_slice(&cleaned_value.bytes) {
                 Ok(value) => Ok(value),
-                Err(_) => {
-                    Err("Failed to parse raw value after attempting to clean. You might want to check the registry value manually. If you are sure the value is correct, please open a GitHub issue.".into())
+                Err(e2) => {
+                    let ultra_cleaned = ultra_clean_raw_value(raw_value);
+                    match serde_json::from_slice(&ultra_cleaned.bytes) {
+                        Ok(value) => Ok(value),
+                        Err(_) => {
+                            let hex_dump = hex::encode(&raw_value.bytes);
+                            Err(FpsUnlockerError::JsonParseError(format!(
+                                "Failed to parse JSON even after cleaning attempts.\nOriginal error: {}\nCleaned error: {}\nHex dump (first 100 bytes): {}",
+                                e, e2, &hex_dump[..std::cmp::min(200, hex_dump.len())]
+                            )))
+                        }
+                    }
                 }
             }
         }
     }
 }
 
-/// Removes all null bytes from a raw value to "clean" it if parsing fails.
 fn clean_raw_value(raw_value: &RegValue) -> RegValue {
-    let mut bytes = raw_value.bytes.clone();
-    let mut new_bytes = Vec::new();
-    for byte in bytes.iter_mut() {
-        if *byte != 00 {
-            new_bytes.push(*byte);
-        }
-    }
+    let cleaned_bytes: Vec<u8> = raw_value
+        .bytes
+        .iter()
+        .filter(|&&b| b != 0)
+        .copied()
+        .collect();
+
     RegValue {
-        bytes: new_bytes,
+        bytes: cleaned_bytes,
         vtype: raw_value.vtype.clone(),
     }
+}
+
+fn ultra_clean_raw_value(raw_value: &RegValue) -> RegValue {
+    let cleaned_bytes: Vec<u8> = raw_value
+        .bytes
+        .iter()
+        .filter(|&&b| b >= 32 || b == 9 || b == 10 || b == 13)
+        .copied()
+        .collect();
+
+    RegValue {
+        bytes: cleaned_bytes,
+        vtype: raw_value.vtype.clone(),
+    }
+}
+
+pub fn create_raw_value_from_json(
+    json_value: &Value,
+    original_raw_value: &RegValue,
+) -> Result<RegValue> {
+    let json_bytes = serde_json::to_vec(json_value)?;
+
+    Ok(RegValue {
+        bytes: json_bytes,
+        vtype: original_raw_value.vtype.clone(),
+    })
 }
