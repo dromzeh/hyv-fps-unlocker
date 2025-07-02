@@ -42,9 +42,9 @@ pub fn get_new_fps_settings(game_config: &GameConfig, json_value: &mut Value) ->
         }
     };
 
-    if !(60..=500).contains(&fps) {
+    if !(30..=500).contains(&fps) {
         return Err(FpsUnlockerError::InvalidFpsValue(format!(
-            "FPS value {} is out of reasonable range (60-500)",
+            "FPS value {} is out of reasonable range (30-500)",
             fps
         )));
     }
